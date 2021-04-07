@@ -11,6 +11,7 @@
 
 std::string prd(const double x, const int decDigits, const int width);
 std::string center(const string s, const int w);
+double DeltaPhi(double phi1, double phi2); // relative angle
 
 void toymc()
 {
@@ -69,12 +70,10 @@ void toymc()
 
 	TF1 *fourier = new TF1("Fourier", "[0]*(1+2*[1]*TMath::Cos(1*(x-[6])) + 2*[2]*TMath::Cos(2*(x-[7])) + 2*[3]*TMath::Cos(3*(x-[8])) + 2*[4]*TMath::Cos(4*(x-[9])) + 2*[5]*TMath::Cos(5*(x-[10])))", 0.0, 2.0*TMath::Pi());
 	//range 0 to 2*pi
-
-
 	for (Int_t n=0; n<=(NH-1); n++){
 
 		//------Distributions------
-		uniform[n]= new TF1(Form("uniform%02d",n+1),"[0]", 0.0, 2.0*TMath::Pi()/(n+1));
+		uniform[n]= new TF1(Form("uniform%02d",n+1),"[0]", -1*TMath::Pi()/(n+1), 1.0*TMath::Pi()/(n+1));
 		uniform[n]->SetParameter(0,1.);
 
 		//-----Histograms---------
@@ -120,8 +119,8 @@ void toymc()
 			//Harmonic loop
 			for (Int_t n=0; n<=(NH-1); n++)
 			{
-				hPhiPsi[n]->Fill(phiarray[t]-Psi_n[n]);
-				vn_psi[n] = TMath::Cos((n+1)*(phiarray[t]-Psi_n[n])); //Change to symmetry plane
+				hPhiPsi[n]->Fill(DeltaPhi(phiarray[t],Psi_n[n]));
+				vn_psi[n] = TMath::Cos((n+1)*(DeltaPhi(phiarray[t], Psi_n[n]))); //Change to symmetry plane
 				hEventPlane[n]->Fill(vn_psi[n]);
 				
 				// calculating eventplane with Q-vectors
@@ -138,14 +137,14 @@ void toymc()
 		for (Int_t i=0; i<Nch; i++){
 			//Evenplane method calculated vn
 			for (Int_t n=0; n<=(NH-1); n++) {
-				hEventPlaneEP[n]->Fill(TMath::Cos((n+1)*(phiarray[i]-Psi_n_EP[n]))); 
-				hPhiPsiQ[n]->Fill(phiarray[i]-Psi_n_EP[n]);
+				hEventPlaneEP[n]->Fill(TMath::Cos((n+1)*(DeltaPhi(phiarray[i], Psi_n_EP[n])))); 
+				hPhiPsiQ[n]->Fill(DeltaPhi(phiarray[i], Psi_n_EP[n]));
 			}
 			for (Int_t j=0; j<Nch;j++){
 				if(i==j) continue;
-				hDeltaPhiSum->Fill(phiarray[i]-phiarray[j]);//For fitting
+				hDeltaPhiSum->Fill(DeltaPhi(phiarray[i], phiarray[j]));//For fitting
 				for (Int_t n=0; n<=(NH-1); n++){
-					vn_phi[n] = TMath::Cos((n+1)*(phiarray[i]-phiarray[j]));//Analytic solution
+					vn_phi[n] = TMath::Cos((n+1)*(DeltaPhi(phiarray[i], phiarray[j])));//Analytic solution
 					hTwoParticle[n]->Fill(vn_phi[n]);
 
 				}
@@ -156,9 +155,9 @@ void toymc()
 		//Resolution for every event
 		for (Int_t n=0; n<=(NH-1); n++)
 		{
-			Resolution[n] = TMath::Cos((n+1)*(Psi_n[n]-Psi_n_EP[n])); //Analystical resultion
+			Resolution[n] = TMath::Cos((n+1)*(DeltaPhi(Psi_n[n], Psi_n_EP[n]))); //Analystical resultion
 			hResolution[n]->Fill(Resolution[n]);
-			hResolutionDist[n]->Fill(Psi_n[n]-Psi_n_EP[n]);
+			hResolutionDist[n]->Fill(DeltaPhi(Psi_n[n], Psi_n_EP[n]));
 		}
 		
 	}// End of event loop
@@ -260,4 +259,10 @@ std::string center(const string s, const int w) {
     if(padding>0 && padding%2!=0)               // if odd #, add 1 space
         ss << " ";
     return ss.str();
+}
+
+double DeltaPhi(double phi1, double phi2) {
+  // dphi
+  double res =  atan2(sin(phi1-phi2), cos(phi1-phi2));
+  return res>0 ? res : 2.*TMath::Pi()+res ;
 }
