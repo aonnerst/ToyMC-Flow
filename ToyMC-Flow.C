@@ -17,8 +17,8 @@ void toymc()
 	const Int_t NH = 5; // number of harmonics
 	Double_t vn[]={0,0.12,0.06,0.03,0.01}; // input values for vn
 	
-	Int_t Nevt = 1000;
-	Int_t Nch = 100;
+	Int_t Nevt = 10000;
+	Int_t Nch = 1000;
 	
 	Int_t NPhiHist = 10;
 	Double_t phiarray[Nch];
@@ -69,28 +69,6 @@ void toymc()
 	TF1 *fourier = new TF1("Fourier", "[0]*(1+2*[1]*TMath::Cos([2]*(x-[3])) + 2*[4]*TMath::Cos([5]*(x-[6])) + 2*[7]*TMath::Cos([8]*(x-[9])) + 2*[10]*TMath::Cos([11]*(x-[12])) + 2*[13]*TMath::Cos([14]*(x-[15])))", 0, 2.0*TMath::Pi());
 	fourier->SetParameter(0,Nch); // any positive constant
 
-/*
-	TF1 *fFit1 = new TF1("Fit1","[0]*(1+2*x*TMath::Cos([1]*[2]))",0, 2.0*TMath::Pi());
-	fFit1->SetParameter(0,Nch);
-	fFit1->SetParameter(1,1);
-
-	TF1 *fFit2 = new TF1("Fit2","[0]*(1+2*x*TMath::Cos([1]*[2]))",0, 2.0*TMath::Pi());
-	fFit2->SetParameter(0,Nch);
-	fFit2->SetParameter(1,2);
-
-	TF1 *fFit3 = new TF1("Fit3","[0]*(1+2*x*TMath::Cos([1]*[2]))",0, 2.0*TMath::Pi());
-	fFit3->SetParameter(0,Nch);
-	fFit3->SetParameter(1,3);
-
-	TF1 *fFit4 = new TF1("Fit4","[0]*(1+2*x*TMath::Cos([1]*[2]))",0, 2.0*TMath::Pi());
-	fFit4->SetParameter(0,Nch);
-	fFit4->SetParameter(1,4);
-
-	TF1 *fFit5 = new TF1("Fit5","[0]*(1+2*x*TMath::Cos([1]*[2]))",0, 2.0*TMath::Pi());
-	fFit5->SetParameter(0,Nch);
-	fFit5->SetParameter(1,5);
-	*/
-
 
 	for (Int_t n=0; n<=(NH-1); n++){
 
@@ -111,8 +89,6 @@ void toymc()
 	}
 
 	TH1D *hDeltaPhiSum = new TH1D("hDeltaPhiSum","hDeltaPhiSum",200, 0.0, 2.0*TMath::Pi());
-
-
 
 
 	for (Int_t iPhiEvt=0; iPhiEvt<NPhiHist; iPhiEvt++){
@@ -193,43 +169,34 @@ void toymc()
 
 
 			}
-		}
+		}//End of track loop
 
 
-		for (Int_t n=0; n<=(NH-1); n++)
-		{
-			for (Int_t i=0; i<Nch; i++){
-				for (Int_t j=0; j<Nch;j++){
-					if(i==j) continue;
-					hDeltaPhi[n]->Fill(phiarray[i]-phiarray[j]);
-					vn_phi[n] = TMath::Cos((n+1)*(phiarray[i]-phiarray[j]));
+		//Two Particle correlation
+		for (Int_t i=0; i<Nch; i++){
+			for (Int_t j=0; j<Nch;j++){
+				if(i==j) continue;
+				hDeltaPhiSum->Fill(phiarray[i]-phiarray[j]);//For fitting
+				for (Int_t n=0; n<=(NH-1); n++){
+					vn_phi[n] = TMath::Cos((n+1)*(phiarray[i]-phiarray[j]));//Analytic solution
 					hTwoParticle[n]->Fill(vn_phi[n]);
-					fFit1->SetParameter(2,phiarray[i]-phiarray[j]);
-					fFit2->SetParameter(2,phiarray[i]-phiarray[j]);
-					fFit3->SetParameter(2,phiarray[i]-phiarray[j]);
-					fFit4->SetParameter(2,phiarray[i]-phiarray[j]);
-					fFit5->SetParameter(2,phiarray[i]-phiarray[j]);
-
-
-					
 				}
 			}
 		}
 		
-	}
+		//Resolution for every event
+		for (Int_t n=0; n<=(NH-1); n++)
+		{
+			Resolution[n] = TMath::Cos((n+1)*(Psi_n[n]-Psi_n_EP[n])); //Analystical resultion
+			hResolution[n]->Fill(Resolution[n]);
+			hResolutionDist[n]->Fill(Psi_n[n]-Psi_n_EP[n]);
+		}
+		
+	}// End of event loop
 
-	for (Int_t n=0; n<=(NH-1); n++)
-	{
-		Resolution[n] = TMath::Cos((n+1)*(Psi_n[n]-Psi_n_EP[n]));
-		hResolution[n]->Fill(Resolution[n]);
-		hResolutionDist[n]->Fill(Psi_n[n]-Psi_n_EP[n]);
-	}
 
-	for (Int_t n=0; n<=(NH-1); n++)
-	{
-		hDeltaPhiSum->Add(hDeltaPhi[n]);
-	}
-	
+
+	// Calculating the avarage over event
 	for (Int_t n=0; n<=(NH-1); n++)
 	{
 		MeanArrayTwoParticle[n]=hTwoParticle[n]->GetMean();
@@ -250,11 +217,6 @@ void toymc()
 	}
 
 	fourier->Write();
-	fFit1->Write();
-	fFit2->Write();
-	fFit3->Write();
-	fFit4->Write();
-	fFit5->Write();
 	output->Write();
 	output->Close();
 
@@ -264,7 +226,7 @@ void toymc()
           << center("input",10)     << " | "
           << center("vn{Psi_n}",20) << " | "
           << center("vn_obs/R",20)    << " | " 
-          << center("vn{n}",20)     << " | "
+          //<< center("vn{n}",20)     << " | "
           << center("fit",20)       << " | "
           << center("R",10)         << "\n";
 
@@ -276,7 +238,7 @@ void toymc()
               		<< prd(vn[n],2,8)          << " | "
               		<< prd(vn_EvtPl[n],5,9)     << " +-"<<prd(MeanArrayEvtPlError[n],5,9)    << " | "
               		<< prd(vn_EvtPlQvec[n],5,9) << " +-"<<prd(vn_obs_ERROR[n],5,9)           << " | "
-              		<< prd(vn_TwoPart[n],5,9)   << " +-"<<prd(MeanArrayTwoPartError[n],5,9)  << " | "
+              		//<< prd(vn_TwoPart[n],5,9)   << " +-"<<prd(MeanArrayTwoPartError[n],5,9)  << " | "
               		<< prd(/*vn_fit[n]*/0,5,10)       << " | "
               		<< prd(Resolution[n],5,10)   <<  " +-"<<prd(MeanArrayResolutionError[n],5,9)  <<"\n";
 		}
@@ -284,7 +246,7 @@ void toymc()
 	for (Int_t n=0; n<=(NH-1); n++)//harmonic loop
 		{
 			cout<< "    input:                     " << vn[n] << endl;
-			cout<< "calc. vn with twopart with diff from input: "<< vn_TwoPart[n] << "+-" << MeanArrayTwoPartError[n] << endl;
+			//cout<< "calc. vn with twopart with diff from input: "<< vn_TwoPart[n] << "+-" << MeanArrayTwoPartError[n] << endl;
 			cout<< "calculated vn with eventplane: "<< vn_EvtPl[n] << "+-" << MeanArrayEvtPlError[n] << endl;
 			cout<< "calculated vn with eventplane using Q-vectors : "<< vn_EvtPlQvec[n] << "+-" << vn_obs_ERROR[n] << endl;
 			cout<< "vn observed : "<< MeanArrayEventPlaneQVec[n] << endl;
