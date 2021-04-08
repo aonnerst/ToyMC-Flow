@@ -41,11 +41,7 @@ void plotToyMC(){
 	TH1D *hPhiPsiQ04 = (TH1D*)fIn->Get("hPhiPsiQ04");
 	TH1D *hPhiPsiQ05 = (TH1D*)fIn->Get("hPhiPsiQ05");
 
-	TH1D *hDeltaPhi01 = (TH1D*)fIn->Get("hDeltaPhi01");
-	TH1D *hDeltaPhi02 = (TH1D*)fIn->Get("hDeltaPhi02");
-	TH1D *hDeltaPhi03 = (TH1D*)fIn->Get("hDeltaPhi03");
-	TH1D *hDeltaPhi04 = (TH1D*)fIn->Get("hDeltaPhi04");
-	TH1D *hDeltaPhi05 = (TH1D*)fIn->Get("hDeltaPhi05");
+	TH1D *hDeltaPhiSum = (TH1D*)fIn->Get("hDeltaPhiSum");
 
 	TH1D *hResolutionDist01 = (TH1D*)fIn->Get("hResolutionDist01");
 	TH1D *hResolutionDist02 = (TH1D*)fIn->Get("hResolutionDist02");
@@ -53,12 +49,7 @@ void plotToyMC(){
 	TH1D *hResolutionDist04 = (TH1D*)fIn->Get("hResolutionDist04");
 	TH1D *hResolutionDist05 = (TH1D*)fIn->Get("hResolutionDist05");
 
-/*
-	TF1 *fFit1 = (TF1*)fIn->Get("Fit1");
-	TF1 *fFit2 = (TF1*)fIn->Get("Fit2");
-	TF1 *fFit3 = (TF1*)fIn->Get("Fit3");
-	TF1 *fFit4 = (TF1*)fIn->Get("Fit4");
-	TF1 *fFit5 = (TF1*)fIn->Get("Fit5");*/
+
    	
    	/***********************
    	**** Style**************
@@ -139,27 +130,7 @@ void plotToyMC(){
 	hDeltaPhi01 -> SetMarkerColor(kRed-7);
 	hDeltaPhi01 -> GetXaxis()->SetTitle("#phi_{1} - #phi_{2}");
 	hDeltaPhi01 -> GetYaxis()->SetTitle("dN/d#Delta#phi'");
-	//hDeltaPhi01 -> Fit("Fit1");
 
-	//hDeltaPhi02 -> Sumw2();
-   	hDeltaPhi02 -> SetMarkerStyle(20);
-   	hDeltaPhi02 -> SetLineColor(kGreen-6);
-	hDeltaPhi02 -> SetMarkerColor(kGreen-6);
-	//hDeltaPhi02 -> Fit("Fit2");
-
-	//hDeltaPhi03 -> Sumw2();
-   	hDeltaPhi03 -> SetMarkerStyle(20);
-   	hDeltaPhi03 -> SetLineColor(kCyan-3);
-	hDeltaPhi03 -> SetMarkerColor(kCyan-3);
-	//hDeltaPhi03 -> Fit("Fit3");
-
-	//hDeltaPhi04 -> Sumw2();
-   	hDeltaPhi04 -> SetMarkerStyle(20);
-   	hDeltaPhi04 -> SetLineColor(kMagenta-9);
-	hDeltaPhi04 -> SetMarkerColor(kMagenta-9);
-	//hDeltaPhi04 -> Fit("Fit4");
-
-	//hDeltaPhi05 -> Fit("Fit5");
 
 	//hResolutionDist01 -> Sumw2();
    	hResolutionDist01 -> SetMarkerStyle(20);

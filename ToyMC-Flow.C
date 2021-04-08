@@ -87,7 +87,7 @@ void toymc()
 		hResolutionDist[n] = new TH1D(Form("hResolutionDist%02d",n+1),Form("hResolutionDist%02d",n+1),200,-10, 10);
 	}
 
-	TH1D *hDeltaPhiSum = new TH1D("hDeltaPhiSum","hDeltaPhiSum",200, -2.0*TMath::Pi(), 2.0*TMath::Pi());
+	TH1D *hDeltaPhiSum = new TH1D("hDeltaPhiSum","hDeltaPhiSum",200, 0.0, 2.0*TMath::Pi());
 
 	for (Int_t iPhiEvt=0; iPhiEvt<NPhiHist; iPhiEvt++){
 		hPhiEvent[iPhiEvt] = new TH1D(Form("hPhiEvent%02d",(iPhiEvt+1)),Form("hPhiEvent%02d",(iPhiEvt+1)),100,0.0, 2.0*TMath::Pi());
@@ -104,12 +104,12 @@ void toymc()
 		for (Int_t n=0; n<=(NH-1); n++) Psi_n[n]=uniform[n]->GetRandom();//harmonic loop
 		fourier->SetParameter(0,Nch); 
 		for (Int_t i=0; i<NH-1; i++)fourier->SetParameter(i+1,vn[i]); //Setting the vn parameters
-		for (Int_t i=NH; i<2*NH-1; i++)fourier->SetParameter(i+1,Psi_n[i-NH]); //Setting the Psi parameters
+		for (Int_t i=NH; i<2*NH; i++)fourier->SetParameter(i+1,Psi_n[i-NH]); //Setting the Psi parameters
 
 		//Initializing 
 		phiarray[Nch]={-999.0};
-		Double_t Qn_x[NH] = {-999.0};
-		Double_t Qn_y[NH] = {-999.0};
+		Double_t Qn_x[NH] = {0.0};//Should be 0 since we sum the qvectors
+		Double_t Qn_y[NH] = {0.0};//
 
 		for (Int_t t=0; t<Nch; t++)//track loop
 		{
