@@ -15,69 +15,45 @@ void plotToyMC(){
      **********************/
 
     TFile *fIn = TFile::Open("output.root","read");
+    const Int_t NH = 5;
+    Int_t NPhiHist = 10;
 
+    TH1D *hPhiEvent[NPhiHist];
+    TH1D *hPhiPsi[NH];
+    TH1D *hPhiPsiQ[NH];
+    TH1D *hResolutionDist[NH];
 
+    TH1D *hDeltaPhiSum = (TH1D*)fIn->Get("hDeltaPhiSum");
 
-	TH1D *hPhiEvent01 = (TH1D*)fIn->Get("hPhiEvent01");
-	TH1D *hPhiEvent02 = (TH1D*)fIn->Get("hPhiEvent02");
-	TH1D *hPhiEvent03 = (TH1D*)fIn->Get("hPhiEvent03");
-	TH1D *hPhiEvent04 = (TH1D*)fIn->Get("hPhiEvent04");
-	TH1D *hPhiEvent05 = (TH1D*)fIn->Get("hPhiEvent05");
-	TH1D *hPhiEvent06 = (TH1D*)fIn->Get("hPhiEvent06");
-	TH1D *hPhiEvent07 = (TH1D*)fIn->Get("hPhiEvent07");
-	TH1D *hPhiEvent08 = (TH1D*)fIn->Get("hPhiEvent08");
-	TH1D *hPhiEvent09 = (TH1D*)fIn->Get("hPhiEvent09");
-	TH1D *hPhiEvent10 = (TH1D*)fIn->Get("hPhiEvent10");
+    for (Int_t n=0; n<=(NH-1); n++){
+    	hPhiPsi[n]=(TH1D*)fIn->Get(Form("hPhiEvent%02d",n+1));
+    	hPhiPsiQ[n]=(TH1D*)fIn->Get(Form("hPhiPsiQ%02d",n+1));
+    	hResolutionDist[n]=(TH1D*)fIn->Get(Form("hResolutionDist%02d",n+1));
+    }
 
-	TH1D *hPhiPsi01 = (TH1D*)fIn->Get("hPhiPsi01");
-	TH1D *hPhiPsi02 = (TH1D*)fIn->Get("hPhiPsi02");
-	TH1D *hPhiPsi03 = (TH1D*)fIn->Get("hPhiPsi03");
-	TH1D *hPhiPsi04 = (TH1D*)fIn->Get("hPhiPsi04");
-	TH1D *hPhiPsi05 = (TH1D*)fIn->Get("hPhiPsi05");
-
-	TH1D *hPhiPsiQ01 = (TH1D*)fIn->Get("hPhiPsiQ01");
-	TH1D *hPhiPsiQ02 = (TH1D*)fIn->Get("hPhiPsiQ02");
-	TH1D *hPhiPsiQ03 = (TH1D*)fIn->Get("hPhiPsiQ03");
-	TH1D *hPhiPsiQ04 = (TH1D*)fIn->Get("hPhiPsiQ04");
-	TH1D *hPhiPsiQ05 = (TH1D*)fIn->Get("hPhiPsiQ05");
-
-	TH1D *hDeltaPhiSum = (TH1D*)fIn->Get("hDeltaPhiSum");
-
-	TH1D *hResolutionDist01 = (TH1D*)fIn->Get("hResolutionDist01");
-	TH1D *hResolutionDist02 = (TH1D*)fIn->Get("hResolutionDist02");
-	TH1D *hResolutionDist03 = (TH1D*)fIn->Get("hResolutionDist03");
-	TH1D *hResolutionDist04 = (TH1D*)fIn->Get("hResolutionDist04");
-	TH1D *hResolutionDist05 = (TH1D*)fIn->Get("hResolutionDist05");
-
-
+    for (Int_t i=0; i<=(NPhiHist-1); i++){
+    	hPhiEvent[i]=(TH1D*)fIn->Get(Form("hPhiEvent%02d",i+1));
+    	//hPhiEvent[i] -> SetMarkerStyle(20+i);
+	   	hPhiEvent[i] -> SetLineColor(i+1);
+		//hPhiEvent[i] -> SetMarkerColor(i+1);
+		hPhiEvent[i] -> GetXaxis()->SetTitle("#phi");
+		hPhiEvent[i] -> GetYaxis()->SetTitle("dN/d#phi");
+    }
    	
+   	TLegend *legendPhi = new TLegend(0.3,0.3);
+	
+
+	TCanvas *cPhiDist = new TCanvas("cPhiDist","cPhiDist");
+   	for(Int_t i=0; i<=(NPhiHist-1); i++){
+   		hPhiEvent[i] -> Draw("SAME");
+   		legendPhi->AddEntry(hPhiEvent[i],Form("Event %d",i+1));
+   	}
+   	legendPhi -> Draw("same");
    	/***********************
    	**** Style**************
    	************************/
 
-   	//hPhiEvent01 -> Sumw2();
-   	hPhiEvent01 -> SetMarkerStyle(20);
-   	hPhiEvent01 -> SetLineColor(kRed-7);
-	hPhiEvent01 -> SetMarkerColor(kRed-7);
-	hPhiEvent01 -> GetXaxis()->SetTitle("#phi");
-	hPhiEvent01 -> GetYaxis()->SetTitle("dN/d#phi");
-
-	//hPhiEvent02 -> Sumw2();
-   	hPhiEvent02 -> SetMarkerStyle(20);
-   	hPhiEvent02 -> SetLineColor(kGreen-6);
-	hPhiEvent02 -> SetMarkerColor(kGreen-6);
-
-	//hPhiEvent03 -> Sumw2();
-   	hPhiEvent03 -> SetMarkerStyle(20);
-   	hPhiEvent03 -> SetLineColor(kCyan-3);
-	hPhiEvent03 -> SetMarkerColor(kCyan-3);
-
-	//hPhiEvent04 -> Sumw2();
-   	hPhiEvent04 -> SetMarkerStyle(20);
-   	hPhiEvent04 -> SetLineColor(kMagenta-9);
-	hPhiEvent04 -> SetMarkerColor(kMagenta-9);
-
-
+/*
 	//hPhiPsi01 -> Sumw2();
    	hPhiPsi01 -> SetMarkerStyle(20);
    	hPhiPsi01 -> SetLineColor(kRed-7);
@@ -152,14 +128,10 @@ void plotToyMC(){
 	//hResolutionDist04 -> Sumw2();
    	hResolutionDist04 -> SetMarkerStyle(20);
    	hResolutionDist04 -> SetLineColor(kMagenta-9);
-	hResolutionDist04 -> SetMarkerColor(kMagenta-9);
+	hResolutionDist04 -> SetMarkerColor(kMagenta-9);*/
 
 
-	TLegend *legendPhi = new TLegend(0.3,0.3);
-	legendPhi->AddEntry(hPhiEvent01,"Event 1");
-	legendPhi->AddEntry(hPhiEvent02,"Event 2");
-	legendPhi->AddEntry(hPhiEvent03,"Event 3");
-	legendPhi->AddEntry(hPhiEvent04,"Event 4");
+	/*
 
 	TLegend *legendPhiPsi = new TLegend(0.3,0.3);
 	legendPhiPsi->AddEntry(hPhiPsi01, "n=1");
@@ -189,21 +161,10 @@ void plotToyMC(){
 	legendResolution->AddEntry(hResolutionDist03, "n=3");
 	legendResolution->AddEntry(hResolutionDist04, "n=4");
 	legendResolution->AddEntry(hResolutionDist05, "n=5");
+*/
 
-
-   	TCanvas *cPhiDist = new TCanvas("cPhiDist","cPhiDist");
-   	hPhiEvent01 -> Draw("SAME");
-   	hPhiEvent02 -> Draw("SAME");
-   	hPhiEvent03 -> Draw("SAME");
-   	hPhiEvent04 -> Draw("SAME");
-   	/*hPhiEvent05 -> Draw();
-   	hPhiEvent06 -> Draw();
-   	hPhiEvent07 -> Draw();
-   	hPhiEvent08 -> Draw();
-   	hPhiEvent09 -> Draw();
-   	hPhiEvent10 -> Draw();*/
-   	legendPhi -> Draw("same");
-
+  
+/*
    	TCanvas *cPhiPsiDist = new TCanvas("cPhiPsiDist","cPhiPsiDist");
  	hPhiPsi01 -> Draw("same");
  	hPhiPsi02 -> Draw("same");
@@ -234,8 +195,6 @@ void plotToyMC(){
  	hResolutionDist03 -> Draw("same");
  	hResolutionDist04 -> Draw("same");
  	hResolutionDist05 -> Draw("same");
- 	legendResolution -> Draw("same");
-
-
+ 	legendResolution -> Draw("same");*/
 
 }

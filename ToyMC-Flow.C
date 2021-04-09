@@ -115,7 +115,11 @@ void toymc()
 		{
 			phiarray[t] = fourier->GetRandom();
 
-			if(iEvent<NPhiHist) hPhiEvent[iEvent]->Fill(phiarray[t]);
+			if(iEvent<NPhiHist) {
+				hPhiEvent[iEvent]->Fill(phiarray[t]);
+				fourier->Write(Form("fourier%02d",iEvent));
+			}
+			
 			//Harmonic loop
 			for (Int_t n=0; n<=(NH-1); n++)
 			{
@@ -184,7 +188,7 @@ void toymc()
 		vn_obs_ERROR[n]=TMath::Power(((1/MeanArrayResolution[n])*MeanArrayEvtPlErrorQvec[n]),2)+TMath::Power(((MeanArrayEventPlaneQVec[n]/TMath::Power(MeanArrayResolution[n],2))*MeanArrayResolutionError[n]),2);
 	}
 
-	fourier->Write();
+	
 	output->Write();
 	output->Close();
 
