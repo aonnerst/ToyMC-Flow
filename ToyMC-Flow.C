@@ -8,6 +8,7 @@
 #include "TRatioPlot.h"
 #include "TString.h"
 #include <TStopwatch.h>
+#include <TComplex.h>
 
 std::string prd(const double x, const int decDigits, const int width);
 std::string center(const string s, const int w);
@@ -43,8 +44,6 @@ void toymc()
 	Double_t vn_TwoPart[NH]={0.0};
 	Double_t vn_EvtPl[NH]={0.0};
 	Double_t vn_EvtPlQvec[NH]={0.0};
-	Double_t Psi_n_EP[NH]={0.0};
-	Double_t Resolution[NH]={0.0};
 
 
 
@@ -70,9 +69,9 @@ void toymc()
 
 	TF1 *fourier = new TF1("Fourier", "[0]*(1+2*[1]*TMath::Cos(1*(x-[6])) + 2*[2]*TMath::Cos(2*(x-[7])) + 2*[3]*TMath::Cos(3*(x-[8])) + 2*[4]*TMath::Cos(4*(x-[9])) + 2*[5]*TMath::Cos(5*(x-[10])))", 0.0, 2.0*TMath::Pi());
 	//range 0 to 2*pi
-	for (Int_t n=0; n<=(NH-1); n++){
+	for (Int_t n=0; n<NH; n++){
 
-		//------Distributions------
+		//------Symmetry planes random ------
 		uniform[n]= new TF1(Form("uniform%02d",n+1),"[0]", -1*TMath::Pi()/(n+1), 1.0*TMath::Pi()/(n+1));
 		uniform[n]->SetParameter(0,1.);
 
@@ -99,9 +98,9 @@ void toymc()
 	//Event loop
 	for (Int_t iEvent=0; iEvent<Nevt; iEvent++)
 	{
-		if(iEvent % ieout == 0) cout << iEvent << "\t" << int(float(iEvent)/Nevt*100) << "%" << endl ;
+		if(iEvent % ieout == 0) { cout << iEvent << "\t" << int(float(iEvent)/Nevt*100) << "%" << endl ; timer.Print();}
 		//Get Psi for different harmonics
-		for (Int_t n=0; n<=(NH-1); n++) Psi_n[n]=uniform[n]->GetRandom();//harmonic loop
+		for (Int_t n=0; n<NH; n++) Psi_n[n]=uniform[n]->GetRandom();//harmonic loop
 		fourier->SetParameter(0,Nch); 
 		for (Int_t i=0; i<NH-1; i++)fourier->SetParameter(i+1,vn[i]); //Setting the vn parameters
 		for (Int_t i=NH; i<2*NH; i++)fourier->SetParameter(i+1,Psi_n[i-NH]); //Setting the Psi parameters
@@ -110,7 +109,12 @@ void toymc()
 		phiarray[Nch]={-999.0};
 		Double_t Qn_x[NH] = {0.0};//Should be 0 since we sum the qvectors
 		Double_t Qn_y[NH] = {0.0};//
-
+		TComplex QvectorsEP[NH];
+		Double_t Psi_n_EP[NH]={0.0};
+		Double_t Psi_n_EPQ[NH]={0.0};
+		Double_t Resolution[NH]={0.0};
+    	for(int iH=0;iH<NH;iH++) QvectorsEP[iH] = TComplex(0,0);
+	
 		for (Int_t t=0; t<Nch; t++)//track loop
 		{
 			phiarray[t] = fourier->GetRandom();
@@ -121,7 +125,7 @@ void toymc()
 			}
 			
 			//Harmonic loop
-			for (Int_t n=0; n<=(NH-1); n++)
+			for (Int_t n=0; n<NH; n++)
 			{
 				hPhiPsi[n]->Fill(DeltaPhi(phiarray[t],Psi_n[n]));
 				vn_psi[n] = TMath::Cos((n+1)*(DeltaPhi(phiarray[t], Psi_n[n]))); //Change to symmetry plane
@@ -130,36 +134,38 @@ void toymc()
 				// calculating eventplane with Q-vectors
 				Qn_x[n] += weight*TMath::Cos((n+1)*phiarray[t]);
 				Qn_y[n] += weight*TMath::Sin((n+1)*phiarray[t]);
+				QvectorsEP[n] += TComplex(TMath::Cos((n+1)*phiarray[t]),TMath::Sin((n+1)*phiarray[t]));
 			}
 
 		}//End of track loop
 
 		//Only after the track loop, must sum over the tracks first
-		for (Int_t n=0; n<=(NH-1); n++) Psi_n_EP[n]=(1/(n+1))*TMath::ATan(Qn_y[n]/Qn_x[n]); 
+		for (Int_t n=0; n<NH; n++) Psi_n_EP[n]=(1/double(n+1))*TMath::ATan2(Qn_y[n],Qn_x[n]); 
+		for (Int_t n=0; n<NH; n++) Psi_n_EPQ[n] = QvectorsEP[n].Theta()/double(n+1);
 
 		//Two Particle correlation
 		for (Int_t i=0; i<Nch; i++){
 			//Evenplane method calculated vn
-			for (Int_t n=0; n<=(NH-1); n++) {
+			for (Int_t n=0; n<NH; n++) {
 				hEventPlaneEP[n]->Fill(TMath::Cos((n+1)*(DeltaPhi(phiarray[i], Psi_n_EP[n])))); 
 				hPhiPsiQ[n]->Fill(DeltaPhi(phiarray[i], Psi_n_EP[n]));
 			}
 			for (Int_t j=0; j<Nch;j++){
 				if(i==j) continue;
 				hDeltaPhiSum->Fill(DeltaPhi(phiarray[i], phiarray[j]));//For fitting
-				for (Int_t n=0; n<=(NH-1); n++){
+				for (Int_t n=0; n<NH; n++){
 					vn_phi[n] = TMath::Cos((n+1)*(DeltaPhi(phiarray[i], phiarray[j])));//Analytic solution
 					hTwoParticle[n]->Fill(vn_phi[n]);
 
 				}
-			}
-			
+			}		
 		}
 		
 		//Resolution for every event
-		for (Int_t n=0; n<=(NH-1); n++)
+		for (Int_t n=0; n<NH; n++)
 		{
 			Resolution[n] = TMath::Cos((n+1)*(DeltaPhi(Psi_n[n], Psi_n_EP[n]))); //Analystical resultion
+			//if(n==1) cout <<  Form("n=%d,psi=%.3f, %.3f, %.3f",n,Psi_n[n], Psi_n_EP[n], Psi_n_EPQ[n]) << endl;
 			hResolution[n]->Fill(Resolution[n]);
 			hResolutionDist[n]->Fill(DeltaPhi(Psi_n[n], Psi_n_EP[n]));
 		}
@@ -169,7 +175,7 @@ void toymc()
 
 
 	// Calculating the avarage over event
-	for (Int_t n=0; n<=(NH-1); n++)
+	for (Int_t n=0; n<NH; n++)
 	{
 		MeanArrayTwoParticle[n]=hTwoParticle[n]->GetMean();
 		MeanArrayTwoPartError[n]=hTwoParticle[n]->GetMeanError()/((n+1)*MeanArrayTwoParticle[n]);
@@ -204,7 +210,7 @@ void toymc()
 
 	std::cout << std::string(10*7 + 2*7, '-') << "\n";
 
-	for(Int_t n=1; n<=(NH-1); n++) 
+	for(Int_t n=1; n<NH; n++) 
 		{
     		std::cout << prd(n+1,0,10)             << " | "
               		<< prd(vn[n],2,8)          << " | "
@@ -212,7 +218,7 @@ void toymc()
               		<< prd(vn_EvtPlQvec[n],5,9) << " +-"<<prd(vn_obs_ERROR[n],5,9)           << " | "
               		<< prd(vn_TwoPart[n],5,9)   << " +-"<<prd(MeanArrayTwoPartError[n],5,9)  << " | "
               		<< prd(/*vn_fit[n]*/0,5,10)       << " | "
-              		<< prd(Resolution[n],5,10)   <<  " +-"<<prd(MeanArrayResolutionError[n],5,9)  <<"\n";
+              		<< prd(MeanArrayResolution[n],5,10)   <<  " +-"<<prd(MeanArrayResolutionError[n],5,9)  <<"\n";
 		}	
 
 	std::cout << center("harmonic",10)   << " | "
@@ -225,7 +231,7 @@ void toymc()
 
 	std::cout << std::string(10*7 + 2*7, '-') << "\n";
 
-	for(Int_t n=1; n<=(NH-1); n++) 
+	for(Int_t n=1; n<NH; n++) 
 		{
     		std::cout << prd(n+1,0,10)         << " | "
               		<< prd(vn[n],2,8)          << " | "
@@ -233,7 +239,7 @@ void toymc()
               		<< prd((TMath::Abs(vn[n] - vn_EvtPlQvec[n])-vn_obs_ERROR[n]),5,9) << " | "
               		<< prd((TMath::Abs(vn[n] - vn_TwoPart[n])-MeanArrayTwoPartError[n]),5,9) << " | "
               		<< prd(/*vn_fit[n]*/0,5,10)       << " | "
-              		<< prd(Resolution[n],5,10)   <<  " +-"<<prd(MeanArrayResolutionError[n],5,9)  <<"\n";
+              		<< prd(MeanArrayResolution[n],5,10)   <<  " +-"<<prd(MeanArrayResolutionError[n],5,9)  <<"\n";
 		}
 
 }
