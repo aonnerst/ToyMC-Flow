@@ -32,7 +32,7 @@ void Resolution()
     double lowx = -10,highx=10;
   	double ly=hResolutionDist[0]->GetMinimum()*0.1,hy=hResolutionDist[0]->GetMaximum()*1.4;
   	TH2F *hfr = new TH2F("hfr"," ", 100,lowx, highx, 10, ly, hy); // numbers: tics x, low limit x, upper limit x, tics y, low limit y, upper limit y
-  	hset( *hfr, "Resolution", "dN/d#phi",0.45,0.45, 0.07,0.07, 0.01,0.01, 0.03,0.03, 510,505);//settings of the upper pad: x-axis, y-axis
+  	hset( *hfr, "#psi_{n}-#psi_{EP}", "dN/d#phi",0.7,0.7, 0.07,0.07, 0.01,0.01, 0.03,0.03, 510,505);//settings of the upper pad: x-axis, y-axis
   	hfr->Draw();
 
   	/*fourier->SetLineColor(kBlack);

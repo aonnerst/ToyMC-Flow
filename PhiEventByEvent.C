@@ -15,18 +15,19 @@ Int_t gStyles[]={1,2,3,4,5,6,7,8,9,10};
 
 void PhiEventByEvent()
 {
-	TFile *fIn = TFile::Open("outputDJ.root","read");
+	TFile *fIn = TFile::Open("output.root","read");
     const Int_t NH = 5;
     const Int_t NPhiHist = 10;
 
     TH1D *hPhiEvent[NPhiHist];
+    TF1 *fourier[NPhiHist];
 
-    TF1 *fourier = (TF1*)fIn->Get("Fourier");
-    //TF1 *uniform= new TF1("uniform","[0]", 0.0, 2.0*TMath::Pi());
-    //uniform->SetParameter(0,60.);
-   // TF1 *fourier = new TF1("Fourier", "[0]*(1+2*[1]*TMath::Cos(1*(x-[6])) + 2*[2]*TMath::Cos(2*(x-[7])) + 2*[3]*TMath::Cos(3*(x-[8])) + 2*[4]*TMath::Cos(4*(x-[9])) + 2*[5]*TMath::Cos(5*(x-[10])))", 0.0, 2.0*TMath::Pi());
-    //fourier->Scale(60,"width");
-    //fourier->Print();
+    for (Int_t i=0; i<=(NPhiHist-1); i++){
+    	fourier[i] = (TF1*)fIn->Get(Form("fourier%02d;1000",i));
+    	fourier[i] ->SetParameter(0,10);
+    }
+
+
 
     gStyle->SetOptStat(0);
     TCanvas *cPhi = new TCanvas("cPhi","cPhi");
@@ -51,13 +52,12 @@ void PhiEventByEvent()
   	TLegend *legendPhi = new TLegend(0.5,0.6,0.8,0.85,"","brNDC");
     legendPhi->SetTextSize(0.04);legendPhi->SetBorderSize(0);legendPhi->SetFillStyle(0);//legend settings;
 
-    for(Int_t i=0; i<=(NPhiHist-5); i++){
-   		hPhiEvent[i]->Draw("same");
+    for(Int_t i=0; i<=(NPhiHist-6); i++){
+   		//hPhiEvent[i]->Draw("esame");
    		hPhiEvent[i]->SetLineColor(gColors[i]);
-   		hPhiEvent[i]->SetLineWidth(5);
-   		//hResolutionDist[i]->SetLineStyle(gStyles[i]);
-   		//hResolutionDist[i]->SetMarkerStyle(gMarkers[i]);
-   		//hResolutionDist[i]->SetMarkerColor(gColors[i]);
+   		hPhiEvent[i]->SetLineWidth(1);
+   		fourier[i]->SetLineColor(gColors[i]);
+   		fourier[i]->Draw("same");
    		legendPhi->AddEntry(hPhiEvent[i],Form("Event %d",i+1));
    	}
    	legendPhi -> Draw("same");
