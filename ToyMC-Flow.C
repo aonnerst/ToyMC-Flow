@@ -18,9 +18,9 @@ void toymc()
 {
 	// Declare variables
 	const Int_t NH = 5; // number of harmonics
-	Double_t vn[]={0.0,0.12,0.06,0.03,0.01}; // input values for vn
+	Double_t vn[]={0.0,0.12,0.06,0.03,0.03}; // input values for vn
 	
-	Int_t Nevt = 1000;
+	Int_t Nevt = 10000;
 	Int_t Nch = 1000;
 	
 	Int_t NPhiHist = 10;
