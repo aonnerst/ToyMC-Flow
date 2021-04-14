@@ -20,30 +20,31 @@ void toymc()
 	const Int_t NH = 5; // number of harmonics
 	Double_t vn[]={0.0,0.12,0.06,0.03,0.03}; // input values for vn
 	
+	Int_t NC = 3; //Number of Centralities
 	Int_t Nevt = 10000;
-	Int_t Nch = 1000;
+	Int_t Nch[NC] = {1000,500,10};
 	
 	Int_t NPhiHist = 10;
 	Double_t phiarray[Nch];
 	Double_t Psi_n[NH]={0.0};
-	Double_t vn_psi[NH]={0.0};
-	Double_t vn_obs_EP[NH]={0.0};
-	Double_t vn_phi[NH]={0.0};
+	Double_t vn_psi[NC][NH]={0.0};
+	Double_t vn_obs_EP[NC][NH]={0.0};
+	Double_t vn_phi[NC][NH]={0.0};
 	Double_t weight = 1.0;
 	//Double_t Qn_x[NH];//={0.0};
 	//Double_t Qn_y[NH];//={0.0};
-	Double_t MeanArrayTwoParticle[NH]={0.0};
-	Double_t MeanArrayEventPlane[NH]={0.0};
-	Double_t MeanArrayEventPlaneQVec[NH]={0.0};
-	Double_t MeanArrayEvtPlError[NH]={0.0};
-	Double_t MeanArrayEvtPlErrorQvec[NH]={0.0};
-	Double_t MeanArrayTwoPartError[NH]={0.0};
-	Double_t MeanArrayResolution[NH]={0.0};
-	Double_t MeanArrayResolutionError[NH]={0.0};
-	Double_t vn_obs_ERROR[NH]={0.0};
-	Double_t vn_TwoPart[NH]={0.0};
-	Double_t vn_EvtPl[NH]={0.0};
-	Double_t vn_EvtPlQvec[NH]={0.0};
+	Double_t MeanArrayTwoParticle[NC][NH]={0.0};
+	Double_t MeanArrayEventPlane[NC][NH]={0.0};
+	Double_t MeanArrayEventPlaneQVec[NC][NH]={0.0};
+	Double_t MeanArrayEvtPlError[NC][NH]={0.0};
+	Double_t MeanArrayEvtPlErrorQvec[NC][NH]={0.0};
+	Double_t MeanArrayTwoPartError[NC][NH]={0.0};
+	Double_t MeanArrayResolution[NC][NH]={0.0};
+	Double_t MeanArrayResolutionError[NC][NH]={0.0};
+	Double_t vn_obs_ERROR[[NC]NH]={0.0};
+	Double_t vn_TwoPart[NC][NH]={0.0};
+	Double_t vn_EvtPl[NC][NH]={0.0};
+	Double_t vn_EvtPlQvec[NC][NH]={0.0};
 
 
 
@@ -52,7 +53,12 @@ void toymc()
 	TFile *output = new TFile(outfile,"recreate");
 	output->cd();
 	
+	//Define uniform function for option B
+	TF1 *centSamp = new TF1("centSamp", "[0]",0.0,0.9);
+	centSamp->SetParameter(0,1.0);
 
+	//Define histogram for option B
+	TH1D *hCentSample = new TH1D("hCentSample","hCentSample",3,0.0,0.9);
 
 	TF1 *uniform[NH];
 	//TF1 *fourier[NH]; 
@@ -86,7 +92,8 @@ void toymc()
 		hResolutionDist[n] = new TH1D(Form("hResolutionDist%02d",n+1),Form("hResolutionDist%02d",n+1),200,-10, 10);
 	}
 
-	TH1D *hDeltaPhiSum = new TH1D("hDeltaPhiSum","hDeltaPhiSum",200, 0.0, 2.0*TMath::Pi());
+	//decided to first define option B, hence need to be finished
+	TH1D *hDeltaPhiSum[NC] = new TH1D(Form("hDeltaPhiSumCent%d",),"hDeltaPhiSum",200, 0.0, 2.0*TMath::Pi());
 
 	for (Int_t iPhiEvt=0; iPhiEvt<NPhiHist; iPhiEvt++){
 		hPhiEvent[iPhiEvt] = new TH1D(Form("hPhiEvent%02d",(iPhiEvt+1)),Form("hPhiEvent%02d",(iPhiEvt+1)),100,0.0, 2.0*TMath::Pi());
@@ -98,7 +105,7 @@ void toymc()
 	//Event loop
 	for (Int_t iEvent=0; iEvent<Nevt; iEvent++)
 	{
-		if(iEvent % ieout == 0) { cout << iEvent << "\t" << int(float(iEvent)/Nevt*100) << "%" << endl ; timer.Print();}
+		if(iEvent % ieout == 0) { cout << iEvent << "\t" << int(float(iEvent)/Nevt*100) << "%" << endl ;}
 		//Get Psi for different harmonics
 		for (Int_t n=0; n<NH; n++) Psi_n[n]=uniform[n]->GetRandom();//harmonic loop
 		fourier->SetParameter(0,Nch); 
@@ -114,6 +121,10 @@ void toymc()
 		Double_t Psi_n_EPQ[NH]={0.0};
 		Double_t Resolution[NH]={0.0};
     	for(int iH=0;iH<NH;iH++) QvectorsEP[iH] = TComplex(0,0);
+
+    	//Sample randomly from centSamp
+    	Double_t dice = centSamp->GetRandom();
+    	if(dice<= 0.0 && dice>=0.3){ some variable = Nch[0];}
 	
 		for (Int_t t=0; t<Nch; t++)//track loop
 		{
